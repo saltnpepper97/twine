@@ -20,11 +20,8 @@ from typing import Dict, List, cast
 import requests
 from rich import print
 
-from twine import commands
-from twine import exceptions
+from twine import commands, exceptions, settings, utils
 from twine import package as package_file
-from twine import settings
-from twine import utils
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +99,30 @@ def _make_package(
     return package
 
 
+def unsupported_warning(
+    packages_to_upload: List[package_file.PackageFile], repository_url: str
+):
+    if any(p.gpg_signature for p in packages_to_upload):
+        if repository_url.startswith((utils.DEFAULT_REPOSITORY, utils.TEST_REPOSITORY)):
+            # Warn the user if they're trying to upload a PGP signature to PyPI
+            # or TestPyPI, which will (as of May 2023) ignore it.
+            # This warning is currently limited to just those indices, since other
+            # indices may still support PGP signatures.
+            logger.warning(
+                "One or more packages has an associated PGP signature; "
+                "these will be silently ignored by the index"
+            )
+        else:
+            # On other indices, warn the user that twine is considering
+            # removing PGP support outright.
+            logger.warning(
+                "One or more packages has an associated PGP signature; "
+                "a future version of twine may silently ignore these. "
+                "See https://github.com/pypa/twine/issues/1009 for more "
+                "information"
+            )
+
+
 def upload(upload_settings: settings.Settings, dists: List[str]) -> None:
     """Upload one or more distributions to a repository, and display the progress.
 
@@ -153,26 +174,7 @@ def upload(upload_settings: settings.Settings, dists: List[str]) -> None:
         for filename in uploads
     ]
 
-    if any(p.gpg_signature for p in packages_to_upload):
-        if repository_url.startswith((utils.DEFAULT_REPOSITORY, utils.TEST_REPOSITORY)):
-            # Warn the user if they're trying to upload a PGP signature to PyPI
-            # or TestPyPI, which will (as of May 2023) ignore it.
-            # This warning is currently limited to just those indices, since other
-            # indices may still support PGP signatures.
-            logger.warning(
-                "One or more packages has an associated PGP signature; "
-                "these will be silently ignored by the index"
-            )
-        else:
-            # On other indices, warn the user that twine is considering
-            # removing PGP support outright.
-            logger.warning(
-                "One or more packages has an associated PGP signature; "
-                "a future version of twine may silently ignore these. "
-                "See https://github.com/pypa/twine/issues/1009 for more "
-                "information"
-            )
-
+    unsupported_warning(packages_to_upload, repository_url)
     repository = upload_settings.create_repository()
     uploaded_packages = []
 
