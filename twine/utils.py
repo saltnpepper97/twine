@@ -421,4 +421,5 @@ class EnvironmentFlag(argparse.Action):
     def bool_from_env(val: Optional[str]) -> bool:
         """Allow '0' and 'false' and 'no' to be False."""
         falsey = {"0", "false", "no"}
-        return bool(val and val.lower() not in falsey)
+        is_enabled = bool(val and val.lower() not in falsey)
+        return is_enabled
