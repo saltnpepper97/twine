@@ -24,6 +24,20 @@ It provides build system independent uploads of source and binary
 See our `documentation`_ for a description of features, installation
 and usage instructions, and links to additional resources.
 
+Building from Source
+====================
+
+To build Twine from source, ensure Python and pip are installed.
+
+Run these commands from the repository root:
+
+.. code-block:: bash
+
+   python -m pip install build
+   python -m build
+
+The generated distributions will be placed in the ``dist/`` directory.
+
 Contributing
 ------------
 
