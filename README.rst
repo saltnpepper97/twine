@@ -33,8 +33,10 @@ Run these commands from the repository root:
 
 .. code-block:: bash
 
-   python -m pip install build
-   python -m build
+   python3 -m pip install build
+   python3 -m build
+
+On systems where Python 3 is invoked using python rather than python3, substitute python in both commands.
 
 The generated distributions will be placed in the ``dist/`` directory.
 
