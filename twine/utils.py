@@ -20,8 +20,7 @@ import os
 import os.path
 import unicodedata
 from typing import Any, Callable, DefaultDict, Dict, Optional, Sequence, Union, cast
-from urllib.parse import urlparse
-from urllib.parse import urlunparse
+from urllib.parse import urlparse, urlunparse
 
 import requests
 import rfc3986
@@ -280,8 +279,7 @@ def check_status_code(response: requests.Response, verbose: bool) -> None:
     except requests.HTTPError as err:
         if not verbose:
             logger.warning(
-                "Error during upload. "
-                "Retry with the --verbose option for more details."
+                "Error during upload. Retry with the --verbose option for more details."
             )
 
         raise err
@@ -356,7 +354,7 @@ get_clientcert = functools.partial(get_userpass_value, key="client_cert")
 
 def make_requests_session() -> requests.Session:
     """Prepare a requests Session with retries & twine's user-agent string."""
-    s = requests.Session()
+    session = requests.Session()
 
     retry = urllib3.Retry(
         allowed_methods=["GET"],
@@ -366,14 +364,14 @@ def make_requests_session() -> requests.Session:
     )
 
     for scheme in ("http://", "https://"):
-        s.mount(scheme, HTTPAdapter(max_retries=retry))
+        session.mount(scheme, HTTPAdapter(max_retries=retry))
 
-    s.headers["User-Agent"] = (
+    session.headers["User-Agent"] = (
         user_agent.UserAgentBuilder("twine", twine.__version__)
         .include_implementation()
         .build()
     )
-    return s
+    return session
 
 
 class EnvironmentDefault(argparse.Action):
